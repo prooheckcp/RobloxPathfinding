@@ -13,20 +13,38 @@ end
 
 export type Node = typeof(Node)
 
+local Boundaries = {}
+Boundaries.__index = Boundaries
+Boundaries.minimumX = 0
+Boundaries.maximumX = 0
+Boundaries.minimumY = 0
+Boundaries.maximumY = 0
+
+function Boundaries.new(mX : number, maxX : number, mY : number, maxY : number)
+    return setmetatable({minimumY = mY, maximumX = maxY, minimumX = mX, maximumY = maxX}, Boundaries)
+end
+
+export type Boundaries = typeof(Boundaries)
+
 local Astar = {}
 
-function Astar:GetNeighbors(currentNode : Node, blackList : Array<Node>) : Array<Node>
+function Astar:GetNeighbors(currentNode : Node, boundaries : Boundaries, blackList : Array<Node>) : Array<Node>
     blackList = blackList or {}
 
     local result : Array<Node> = {
         Node.new(currentNode.x + 1, currentNode.y),
         Node.new(currentNode.x - 1, currentNode.y),
         Node.new(currentNode.x, currentNode.y + 1),
-        Node.new(currentNode.x, currentNode.y - 1),        
+        Node.new(currentNode.x, currentNode.y - 1),
     }
 
     for i = #result, 1, -1 do
         local n : Node = result[i]
+
+        if self:OutOfBounds(n, boundaries) then
+            table.remove(result, i)
+           continue 
+        end
 
         for _, bn : Node in pairs(blackList) do
             if self:AreEqual(n, bn) then
@@ -36,6 +54,19 @@ function Astar:GetNeighbors(currentNode : Node, blackList : Array<Node>) : Array
     end 
 
     return result
+end
+
+function Astar:OutOfBounds(node : Node, boundaries : Boundaries) : boolean
+    if 
+    node.x < boundaries.minimumX or 
+    node.x > boundaries.maximumX or
+    node.y < boundaries.minimumY or
+    node.y > boundaries.maximumY then
+        return true
+    end
+
+
+    return false
 end
 
 function Astar:GetPath(node : Node) : Array<Node>
@@ -75,7 +106,7 @@ function Astar:Find(table : Array<Node>, node : Node)
     return nil
 end
 
-function Astar:FindPath(start : Node, target : Node, blackList : Array<Node>?) : Array<Node>
+function Astar:FindPath(start : Node, target : Node, boundaries : Boundaries, blackList : Array<Node>?) : Array<Node>
     local openList : Array<Node> = {start}
     local closedList : Array<Node> = {}
 
@@ -98,7 +129,7 @@ function Astar:FindPath(start : Node, target : Node, blackList : Array<Node>?) :
         table.remove(openList, self:Find(openList, currentNode))
 
         --Normal case
-        local neighbors : Array<Node> = self:GetNeighbors(currentNode, blackList)
+        local neighbors : Array<Node> = self:GetNeighbors(currentNode, boundaries, blackList)
         for _, neighbor : Node in pairs(neighbors) do
             if self:Find(closedList, neighbor) then
                 continue
@@ -123,6 +154,7 @@ function Astar:FindPath(start : Node, target : Node, blackList : Array<Node>?) :
     return {}
 end
 
+Astar.Boundaries = Boundaries
 Astar.Node = Node
 
 return Astar

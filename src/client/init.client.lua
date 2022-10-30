@@ -11,6 +11,8 @@ local GRID_SIZE = 10
 local BLOCK_SIZE = 5
 local GAP_SIZE = 0.2
 
+local boundaries = Astar.Boundaries.new(1, GRID_SIZE, 1, GRID_SIZE)
+
 local firstNode = nil
 local secondNode = nil
 
@@ -70,7 +72,7 @@ for x = 1, GRID_SIZE do
                 secondNode = node
                 reference[secondNode.x][secondNode.y].Color = TARGET_COLOR
 
-                path = Astar:FindPath(firstNode, secondNode, blackList)
+                path = Astar:FindPath(firstNode, secondNode, boundaries, blackList)
 
                 for i, node in pairs(path) do
                     if i == 1 or i == #path then

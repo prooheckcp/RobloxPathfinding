@@ -15,13 +15,27 @@ export type Node = typeof(Node)
 
 local Astar = {}
 
-function Astar:GetNeighbors(currentNode : Node) : Array<Node>
-    return {
+function Astar:GetNeighbors(currentNode : Node, blackList : Array<Node>) : Array<Node>
+    blackList = blackList or {}
+
+    local result : Array<Node> = {
         Node.new(currentNode.x + 1, currentNode.y),
         Node.new(currentNode.x - 1, currentNode.y),
         Node.new(currentNode.x, currentNode.y + 1),
-        Node.new(currentNode.x, currentNode.y - 1),
+        Node.new(currentNode.x, currentNode.y - 1),        
     }
+
+    for i = #result, 1, -1 do
+        local n : Node = result[i]
+
+        for _, bn : Node in pairs(blackList) do
+            if self:AreEqual(n, bn) then
+                table.remove(result, i)
+            end
+        end
+    end 
+
+    return result
 end
 
 function Astar:GetPath(node : Node) : Array<Node>
@@ -46,11 +60,14 @@ function Astar:Heuristic(currentNode : Node, endNode : Node) : number
     return math.abs(currentNode.x - endNode.x) + math.abs(currentNode.y - endNode.y)
 end
 
+function Astar:AreEqual(node1 : Node, node2 : Node) : boolean
+    return node1.x == node2.x and node1.y == node2.y
+end
+
 function Astar:Find(table : Array<Node>, node : Node)
     for i : number, currentNode : Node in pairs(table) do
         if 
-        currentNode.x == node.x and
-        currentNode.y == node.y 
+        self:AreEqual(currentNode, node)
         then
             return i
         end
@@ -58,10 +75,9 @@ function Astar:Find(table : Array<Node>, node : Node)
     return nil
 end
 
-function Astar:FindPath(start : Node, target : Node) : Array<Node>
+function Astar:FindPath(start : Node, target : Node, blackList : Array<Node>?) : Array<Node>
     local openList : Array<Node> = {start}
     local closedList : Array<Node> = {}
-    local path : Array<Node> = {}
 
     while #openList > 0 do
         local currentNode = openList[1]
@@ -73,9 +89,7 @@ function Astar:FindPath(start : Node, target : Node) : Array<Node>
         end
 
         --Final Case
-        if 
-        currentNode.x == target.x and
-        currentNode.y == target.y then
+        if self:AreEqual(currentNode, target) then
             return self:GetPath(currentNode)
         end
 
@@ -84,7 +98,7 @@ function Astar:FindPath(start : Node, target : Node) : Array<Node>
         table.remove(openList, self:Find(openList, currentNode))
 
         --Normal case
-        local neighbors : Array<Node> = self:GetNeighbors(currentNode)
+        local neighbors : Array<Node> = self:GetNeighbors(currentNode, blackList)
         for _, neighbor : Node in pairs(neighbors) do
             if self:Find(closedList, neighbor) then
                 continue

@@ -4,6 +4,8 @@ local Astar = require(ReplicatedStorage.Common.Astar)
 
 local TARGET_COLOR = Color3.fromRGB(0, 0, 160)
 local DEFAULT_COLOR = Color3.fromRGB(255, 255, 255)
+local BLOCK_COLOR = Color3.fromRGB(200, 0, 0)
+
 local PATH_COLOR = Color3.fromRGB(216, 238, 46)
 local GRID_SIZE = 10
 local BLOCK_SIZE = 5
@@ -14,6 +16,7 @@ local secondNode = nil
 
 local reference = {}
 local path = {}
+local blackList = {}
 
 for i = 1, GRID_SIZE do
     reference[i] = {}
@@ -31,9 +34,26 @@ for x = 1, GRID_SIZE do
         reference[x][y] = block
 
         local clickDetector = Instance.new("ClickDetector")
+
+        clickDetector.RightMouseClick:Connect(function()
+            if blackList[block] then
+                blackList[block] = nil
+                block.Color = DEFAULT_COLOR
+            else
+                blackList[block] = Astar.Node.new(x, y)
+                block.Color = BLOCK_COLOR
+            end
+        end)
+
         clickDetector.MouseClick:Connect(function()
             if not firstNode or (firstNode and secondNode) then
-                for _, node in pairs(path) do                   
+                for _, node in pairs(path) do
+                    if 
+                    not reference[node.x] or
+                    not reference[node.x][node.y]
+                    then
+                        continue
+                    end         
                     reference[node.x][node.y].Color = DEFAULT_COLOR
                 end
 
@@ -50,13 +70,18 @@ for x = 1, GRID_SIZE do
                 secondNode = node
                 reference[secondNode.x][secondNode.y].Color = TARGET_COLOR
 
-                path = Astar:FindPath(firstNode, secondNode)
+                path = Astar:FindPath(firstNode, secondNode, blackList)
 
                 for i, node in pairs(path) do
                     if i == 1 or i == #path then
                         continue
                     end
-
+                    if 
+                    not reference[node.x] or
+                    not reference[node.x][node.y]
+                    then
+                        continue
+                    end     
                     reference[node.x][node.y].Color = PATH_COLOR
                 end
                 

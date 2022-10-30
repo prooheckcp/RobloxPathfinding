@@ -13,7 +13,6 @@ local firstNode = nil
 local secondNode = nil
 
 local reference = {}
-local nodeReference = {}
 local path = {}
 
 for i = 1, GRID_SIZE do
@@ -30,7 +29,6 @@ for x = 1, GRID_SIZE do
 
         local node = Astar.Node.new(x, y)
         reference[x][y] = block
-        nodeReference[block] = node
 
         local clickDetector = Instance.new("ClickDetector")
         clickDetector.MouseClick:Connect(function()
@@ -53,6 +51,7 @@ for x = 1, GRID_SIZE do
                 reference[secondNode.x][secondNode.y].Color = TARGET_COLOR
 
                 path = Astar:FindPath(firstNode, secondNode)
+
                 for i, node in pairs(path) do
                     if i == 1 or i == #path then
                         continue

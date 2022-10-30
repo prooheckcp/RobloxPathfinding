@@ -46,6 +46,18 @@ function Astar:Heuristic(currentNode : Node, endNode : Node) : number
     return math.abs(currentNode.x - endNode.x) + math.abs(currentNode.y - endNode.y)
 end
 
+function Astar:Find(table : Array<Node>, node : Node)
+    for i : number, currentNode : Node in pairs(table) do
+        if 
+        currentNode.x == node.x and
+        currentNode.y == node.y 
+        then
+            return i
+        end
+    end
+    return nil
+end
+
 function Astar:FindPath(start : Node, target : Node) : Array<Node>
     local openList : Array<Node> = {start}
     local closedList : Array<Node> = {}
@@ -64,24 +76,23 @@ function Astar:FindPath(start : Node, target : Node) : Array<Node>
         if 
         currentNode.x == target.x and
         currentNode.y == target.y then
-            print("Found the final case")
             return self:GetPath(currentNode)
         end
 
         --Move the current node from the openSet, closedSet
         table.insert(closedList, currentNode)
-        table.remove(openList, table.find(openList, currentNode))
+        table.remove(openList, self:Find(openList, currentNode))
 
         --Normal case
         local neighbors : Array<Node> = self:GetNeighbors(currentNode)
         for _, neighbor : Node in pairs(neighbors) do
-            if table.find(closedList, neighbor) then
+            if self:Find(closedList, neighbor) then
                 continue
             end
 
             local possibleG = currentNode.g + 1
 
-            if not table.find(openList, neighbor) then
+            if not self:Find(openList, neighbor) then
                 table.insert(openList, neighbor)
             elseif possibleG >= neighbor.g then
                 continue

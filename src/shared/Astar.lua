@@ -26,6 +26,8 @@ end
 
 function Astar:GetPath(node : Node) : Array<Node>
     local temp : Array<Node> = {}
+    local result : Array<Node> = {}
+
     local currentNode : Node = node
 
     while currentNode do
@@ -33,7 +35,11 @@ function Astar:GetPath(node : Node) : Array<Node>
         currentNode = currentNode.parent 
     end
 
-    return temp
+    for i = #temp, 1, -1 do
+        table.insert(result, temp[i])
+    end
+
+    return result
 end
 
 function Astar:Heuristic(currentNode : Node, endNode : Node) : number

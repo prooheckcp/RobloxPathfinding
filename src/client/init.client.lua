@@ -4,6 +4,7 @@ local Astar = require(ReplicatedStorage.Common.Astar)
 
 local TARGET_COLOR = Color3.fromRGB(0, 0, 160)
 local DEFAULT_COLOR = Color3.fromRGB(255, 255, 255)
+local PATH_COLOR = Color3.fromRGB(216, 238, 46)
 local GRID_SIZE = 10
 local BLOCK_SIZE = 5
 local GAP_SIZE = 0.2
@@ -13,6 +14,7 @@ local secondNode = nil
 
 local reference = {}
 local nodeReference = {}
+local path = {}
 
 for i = 1, GRID_SIZE do
     reference[i] = {}
@@ -33,6 +35,10 @@ for x = 1, GRID_SIZE do
         local clickDetector = Instance.new("ClickDetector")
         clickDetector.MouseClick:Connect(function()
             if not firstNode or (firstNode and secondNode) then
+                for _, node in pairs(path) do                   
+                    reference[node.x][node.y].Color = DEFAULT_COLOR
+                end
+
                 if firstNode then
                     reference[firstNode.x][firstNode.y].Color = DEFAULT_COLOR
                 end
@@ -46,8 +52,15 @@ for x = 1, GRID_SIZE do
                 secondNode = node
                 reference[secondNode.x][secondNode.y].Color = TARGET_COLOR
 
-                local path = Astar:FindPath(firstNode, secondNode)
-                print(path)
+                path = Astar:FindPath(firstNode, secondNode)
+                for i, node in pairs(path) do
+                    if i == 1 or i == #path then
+                        continue
+                    end
+
+                    reference[node.x][node.y].Color = PATH_COLOR
+                end
+                
             end
         end)
         clickDetector.Parent = block

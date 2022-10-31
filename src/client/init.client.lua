@@ -1,6 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Astar = require(ReplicatedStorage.Common.Astar)
+local AStar = require(ReplicatedStorage.Common.AStar)
 
 local TARGET_COLOR = Color3.fromRGB(0, 0, 160)
 local DEFAULT_COLOR = Color3.fromRGB(255, 255, 255)
@@ -11,7 +11,7 @@ local GRID_SIZE = 10
 local BLOCK_SIZE = 5
 local GAP_SIZE = 0.2
 
-local boundaries = Astar.Boundaries.new(1, GRID_SIZE, 1, GRID_SIZE)
+local boundaries = AStar.Boundaries.new(1, GRID_SIZE, 1, GRID_SIZE)
 
 local firstNode = nil
 local secondNode = nil
@@ -32,7 +32,7 @@ for x = 1, GRID_SIZE do
         block.Position = Vector3.new(x * (BLOCK_SIZE + GAP_SIZE), 1, y * (BLOCK_SIZE + GAP_SIZE))
         block.Color = DEFAULT_COLOR
 
-        local node = Astar.Node.new(x, y)
+        local node = AStar.Node.new(x, y)
         reference[x][y] = block
 
         local clickDetector = Instance.new("ClickDetector")
@@ -42,7 +42,7 @@ for x = 1, GRID_SIZE do
                 blackList[block] = nil
                 block.Color = DEFAULT_COLOR
             else
-                blackList[block] = Astar.Node.new(x, y)
+                blackList[block] = AStar.Node.new(x, y)
                 block.Color = BLOCK_COLOR
             end
         end)
@@ -72,7 +72,7 @@ for x = 1, GRID_SIZE do
                 secondNode = node
                 reference[secondNode.x][secondNode.y].Color = TARGET_COLOR
 
-                path = Astar:FindPath(firstNode, secondNode, boundaries, blackList)
+                path = AStar:FindPath(firstNode, secondNode, boundaries, blackList)
 
                 for i, node in pairs(path) do
                     if i == 1 or i == #path then

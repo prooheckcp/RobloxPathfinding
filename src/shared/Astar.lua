@@ -7,8 +7,8 @@ Node.h = 0
 Node.f = 0
 Node.parent = nil
 
-function Node.new(x, y)
-    return setmetatable({x = x, y = y}, Node)
+function Node.new(x, y, g)
+    return setmetatable({x = x, y = y, g = g or 1}, Node)
 end
 
 export type Node = typeof(Node)
@@ -21,14 +21,14 @@ Boundaries.minimumY = 0
 Boundaries.maximumY = 0
 
 function Boundaries.new(mX : number, maxX : number, mY : number, maxY : number)
-    return setmetatable({minimumY = mY, maximumX = maxY, minimumX = mX, maximumY = maxX}, Boundaries)
+    return setmetatable({minimumX = mX, maximumX = maxX, minimumY = mY, maximumY = maxY}, Boundaries)
 end
 
 export type Boundaries = typeof(Boundaries)
 
-local Astar = {}
+local AStar = {}
 
-function Astar:GetNeighbors(currentNode : Node, boundaries : Boundaries, blackList : Array<Node>) : Array<Node>
+function AStar:GetNeighbors(currentNode : Node, boundaries : Boundaries, blackList : Array<Node>) : Array<Node>
     blackList = blackList or {}
 
     local result : Array<Node> = {
@@ -43,7 +43,7 @@ function Astar:GetNeighbors(currentNode : Node, boundaries : Boundaries, blackLi
 
         if self:OutOfBounds(n, boundaries) then
             table.remove(result, i)
-           continue 
+            continue 
         end
 
         for _, bn : Node in pairs(blackList) do
@@ -56,7 +56,7 @@ function Astar:GetNeighbors(currentNode : Node, boundaries : Boundaries, blackLi
     return result
 end
 
-function Astar:OutOfBounds(node : Node, boundaries : Boundaries) : boolean
+function AStar:OutOfBounds(node : Node, boundaries : Boundaries) : boolean
     if 
     node.x < boundaries.minimumX or 
     node.x > boundaries.maximumX or
@@ -69,7 +69,7 @@ function Astar:OutOfBounds(node : Node, boundaries : Boundaries) : boolean
     return false
 end
 
-function Astar:GetPath(node : Node) : Array<Node>
+function AStar:GetPath(node : Node) : Array<Node>
     local temp : Array<Node> = {}
     local result : Array<Node> = {}
 
@@ -87,15 +87,15 @@ function Astar:GetPath(node : Node) : Array<Node>
     return result
 end
 
-function Astar:Heuristic(currentNode : Node, endNode : Node) : number
+function AStar:Heuristic(currentNode : Node, endNode : Node) : number
     return math.abs(currentNode.x - endNode.x) + math.abs(currentNode.y - endNode.y)
 end
 
-function Astar:AreEqual(node1 : Node, node2 : Node) : boolean
+function AStar:AreEqual(node1 : Node, node2 : Node) : boolean
     return node1.x == node2.x and node1.y == node2.y
 end
 
-function Astar:Find(table : Array<Node>, node : Node)
+function AStar:Find(table : Array<Node>, node : Node)
     for i : number, currentNode : Node in pairs(table) do
         if 
         self:AreEqual(currentNode, node)
@@ -106,12 +106,12 @@ function Astar:Find(table : Array<Node>, node : Node)
     return nil
 end
 
-function Astar:FindPath(start : Node, target : Node, boundaries : Boundaries, blackList : Array<Node>?) : Array<Node>
+function AStar:FindPath(start : Node, target : Node, boundaries : Boundaries, blackList : Array<Node>?) : Array<Node>
     local openList : Array<Node> = {start}
     local closedList : Array<Node> = {}
 
     while #openList > 0 do
-        local currentNode = openList[1]
+        local currentNode : Node = openList[1]
 
         for _, node in pairs(openList) do
             if node.f < currentNode.f then
@@ -135,7 +135,7 @@ function Astar:FindPath(start : Node, target : Node, boundaries : Boundaries, bl
                 continue
             end
 
-            local possibleG = currentNode.g + 1
+            local possibleG = currentNode.g + neighbor.g
 
             if not self:Find(openList, neighbor) then
                 table.insert(openList, neighbor)
@@ -145,7 +145,7 @@ function Astar:FindPath(start : Node, target : Node, boundaries : Boundaries, bl
 
             neighbor.g = possibleG
             neighbor.h = self:Heuristic(neighbor, target)
-            neighbor.f = neighbor.g + neighbor.f
+            neighbor.f = neighbor.g + neighbor.h
             neighbor.parent = currentNode
         end
     end
@@ -154,7 +154,7 @@ function Astar:FindPath(start : Node, target : Node, boundaries : Boundaries, bl
     return {}
 end
 
-Astar.Boundaries = Boundaries
-Astar.Node = Node
+AStar.Boundaries = Boundaries
+AStar.Node = Node
 
-return Astar
+return AStar
